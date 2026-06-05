@@ -1,5 +1,4 @@
 use crate::contour::{ContourRing, Point2, RingKind, ShapeGroup};
-use crate::Result;
 use geo::{Contains, Coord, LineString, Point, Polygon};
 
 /// Assign outer/hole kinds using even-odd nesting by area and containment.

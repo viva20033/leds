@@ -1,7 +1,7 @@
 use crate::{CoreError, Result};
 use leds_catalog::{load_catalog, module_for_depth, Catalog, LedModule};
 use leds_electrical::{estimate_cost, plan_power};
-use leds_geometry::contour::ProductParams;
+use leds_geometry::ProductParams;
 use leds_geometry::{build_safe_zone, build_topology, estimate_min_width};
 use leds_import::import_file;
 use leds_lighting::{simulate, SimulationSettings};
@@ -51,7 +51,7 @@ pub fn run_pipeline(
 
     let min_widths: Vec<f64> = groups
         .iter()
-        .map(|g| estimate_min_width(g, 16))
+        .map(|g| estimate_min_width(g, 8))
         .collect();
 
     let module = resolve_module(catalog, options)?;
@@ -113,4 +113,21 @@ fn resolve_module<'a>(catalog: &'a Catalog, options: &RunOptions) -> Result<&'a 
 
 pub fn load_default_catalog() -> Result<Catalog> {
     Ok(load_catalog(leds_catalog::default_catalog_path())?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pipeline_lightbox_completes() {
+        let catalog = load_default_catalog().expect("catalog");
+        let report = run_pipeline(
+            "../../tests/golden/lightbox.svg",
+            &catalog,
+            &RunOptions::default(),
+        )
+        .expect("pipeline");
+        assert!(report.placement.module_count >= 1);
+    }
 }

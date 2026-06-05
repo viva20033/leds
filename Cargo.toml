@@ -26,9 +26,6 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 geo = "0.32"
 usvg = "0.45"
-i_overlay = "4.0"
-i_shape = "1.14"
-i_float = "1.15"
 kurbo = "0.11"
 rayon = "1.10"
 uuid = { version = "1", features = ["v4", "serde"] }

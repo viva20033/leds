@@ -10,3 +10,4 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 usvg = { workspace = true }
 leds-geometry = { workspace = true }
+regex-lite = "0.1"

@@ -1,16 +1,6 @@
-use crate::contour::{ContourRing, Point2, ShapeGroup};
+use crate::contour::{Point2, ShapeGroup};
+use crate::topology::point_in_shape;
 use crate::{GeometryError, Result};
-use i_float::float::FloatNumber;
-use i_float::line_float::LineFloat;
-use i_float::point::Point as IPoint;
-use i_float::rect::Rect;
-use i_overlay::float::overlay::FloatOverlay;
-use i_overlay::float::style::FillRule;
-use i_overlay::mesh::style::OffsetStyle;
-use i_overlay::mesh::MeshBuilder;
-use i_overlay::mesh::MeshOffset;
-
-const SCALE: f64 = 100.0;
 
 pub fn build_safe_zone(
     group: &ShapeGroup,
@@ -19,19 +9,29 @@ pub fn build_safe_zone(
     safety_margin_mm: f64,
 ) -> Result<Vec<Point2>> {
     let inset = rim_width_mm + module_extent_mm * 0.5 + safety_margin_mm;
-    let outer_inset = inset_ring(&group.outer, -inset)?;
+    let outer_inset = inset_ring(&group.outer.points, -inset)?;
     if outer_inset.len() < 3 {
         return Err(GeometryError::OffsetCollapsed(
             "outer safe zone collapsed — increase depth or reduce rim".into(),
         ));
     }
 
-    let mut result = outer_inset;
-    for hole in &group.holes {
-        let hole_outset = inset_ring(hole, inset)?;
-        if hole_outset.len() >= 3 {
-            result = subtract_polygon(&result, &hole_outset);
-        }
+    let mut result: Vec<Point2> = outer_inset
+        .iter()
+        .copied()
+        .filter(|p| {
+            for hole in &group.holes {
+                let expanded = inset_ring(&hole.points, inset).unwrap_or_default();
+                if expanded.len() >= 3 && point_in_ring(p, &expanded) {
+                    return false;
+                }
+            }
+            true
+        })
+        .collect();
+
+    if result.len() < 3 {
+        result = filter_safe_points(&outer_inset, group, inset);
     }
 
     if result.len() < 3 {
@@ -42,77 +42,73 @@ pub fn build_safe_zone(
     Ok(result)
 }
 
-fn inset_ring(ring: &ContourRing, delta: f64) -> Result<Vec<Point2>> {
-    let path = ring_to_float_path(ring);
-    if path.is_empty() {
-        return Err(GeometryError::EmptyContour);
-    }
-
-    let style = OffsetStyle {
-        offset: delta as f32,
-        ..Default::default()
-    };
-    let mesh = MeshBuilder::from_subj_path(&path).offset(style);
-    let contours = mesh.contours();
-    let first = contours.first().ok_or_else(|| {
-        GeometryError::OffsetCollapsed("offset returned empty mesh".into())
-    })?;
-    let pts = contour_to_points(first);
-    if pts.len() < 3 {
-        return Err(GeometryError::OffsetCollapsed(
-            "offset collapsed to degenerate polygon".into(),
-        ));
-    }
-    Ok(pts)
-}
-
-fn subtract_polygon(subject: &[Point2], clip: &[Point2]) -> Vec<Point2> {
-    let subj = vec![points_to_path(subject)];
-    let clp = vec![points_to_path(clip)];
-    let mesh = FloatOverlay::with_subj_and_clip(&subj, &clp)
-        .overlay(FillRule::EvenOdd);
-    mesh.contours()
-        .first()
-        .map(contour_to_points)
-        .unwrap_or_else(|| subject.to_vec())
-}
-
-fn ring_to_float_path(ring: &ContourRing) -> LineFloat<f32> {
-    let mut path = LineFloat::with_capacity(ring.points.len());
-    for p in &ring.points {
-        path.push(IPoint::new(
-            (p.x * SCALE) as f32,
-            (p.y * SCALE) as f32,
-        ));
-    }
-    if let (Some(first), Some(last)) = (ring.points.first(), ring.points.last()) {
-        if (first.x - last.x).hypot(first.y - last.y) > 0.01 {
-            path.push(IPoint::new(
-                (first.x * SCALE) as f32,
-                (first.y * SCALE) as f32,
-            ));
-        }
-    }
-    path
-}
-
-fn points_to_path(pts: &[Point2]) -> LineFloat<f32> {
-    let mut path = LineFloat::with_capacity(pts.len());
-    for p in pts {
-        path.push(IPoint::new(
-            (p.x * SCALE) as f32,
-            (p.y * SCALE) as f32,
-        ));
-    }
-    path
-}
-
-fn contour_to_points(contour: &[IPoint<f32>]) -> Vec<Point2> {
-    contour
+fn filter_safe_points(outer: &[Point2], group: &ShapeGroup, hole_delta: f64) -> Vec<Point2> {
+    outer
         .iter()
-        .map(|p| Point2 {
-            x: p.x as f64 / SCALE,
-            y: p.y as f64 / SCALE,
+        .copied()
+        .filter(|p| point_in_shape(group, p))
+        .filter(|p| {
+            !group.holes.iter().any(|h| {
+                let exp = inset_ring(&h.points, hole_delta).unwrap_or_default();
+                exp.len() >= 3 && point_in_ring(p, &exp)
+            })
         })
         .collect()
+}
+
+fn inset_ring(points: &[Point2], delta: f64) -> Result<Vec<Point2>> {
+    let n = points.len();
+    if n < 3 {
+        return Err(GeometryError::EmptyContour);
+    }
+    let mut out = Vec::with_capacity(n);
+    for i in 0..n {
+        let prev = &points[(i + n - 1) % n];
+        let curr = &points[i];
+        let next = &points[(i + 1) % n];
+        let e1 = normalize(Point2 {
+            x: curr.x - prev.x,
+            y: curr.y - prev.y,
+        });
+        let e2 = normalize(Point2 {
+            x: next.x - curr.x,
+            y: next.y - curr.y,
+        });
+        let mut nx = -(e1.y + e2.y);
+        let mut ny = e1.x + e2.x;
+        let len = (nx * nx + ny * ny).sqrt().max(1e-9);
+        nx /= len;
+        ny /= len;
+        out.push(Point2 {
+            x: curr.x + nx * delta,
+            y: curr.y + ny * delta,
+        });
+    }
+    Ok(out)
+}
+
+fn normalize(v: Point2) -> Point2 {
+    let l = (v.x * v.x + v.y * v.y).sqrt().max(1e-9);
+    Point2 {
+        x: v.x / l,
+        y: v.y / l,
+    }
+}
+
+fn point_in_ring(p: &Point2, ring: &[Point2]) -> bool {
+    let mut inside = false;
+    let n = ring.len();
+    for i in 0..n {
+        let j = (i + 1) % n;
+        let xi = ring[i].x;
+        let yi = ring[i].y;
+        let xj = ring[j].x;
+        let yj = ring[j].y;
+        if ((yi > p.y) != (yj > p.y))
+            && (p.x < (xj - xi) * (p.y - yi) / (yj - yi + 1e-12) + xi)
+        {
+            inside = !inside;
+        }
+    }
+    inside
 }

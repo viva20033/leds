@@ -6,7 +6,14 @@
 
 **Фаза 0–1 (в работе):** рабочее ядро на TypeScript, CLI, UI-прототип.
 
-**Rust (`crates/`):** на Windows пока не собирается — нет MSVC `link.exe`. Нужно установить [Build Tools for Visual Studio](https://visualstudio.microsoft.com/visual-cpp-build-tools/) с workload **Desktop development with C++**, затем `cargo build`. Файл `rust-toolchain.toml` фиксирует `stable` (MSVC), поэтому переключение на GNU без MinGW тоже не поможет.
+## Rust CLI
+
+После `cargo build`:
+
+```bash
+cargo run -- catalog
+cargo run -- run tests/golden/lightbox.svg --depth 100
+```
 
 ### Быстрый старт
 

@@ -1,7 +1,6 @@
 use crate::{PlacementError, Result};
 use leds_catalog::LedModule;
-use leds_geometry::contour::{Point2, ProductParams, ShapeGroup};
-use leds_geometry::{build_safe_zone, compute_distance_field, point_in_shape};
+use leds_geometry::{build_safe_zone, Point2, ProductParams, ShapeGroup};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -70,13 +69,6 @@ pub fn place_modules(
 
     let pitch = module.placement.recommended_pitch_mm;
     let min_pitch = module.placement.min_pitch_mm;
-    let field = compute_distance_field(group, &safe, options.cell_mm);
-    let threshold = (min_pitch * 0.5) as f32;
-    let mut seeds = field.local_maxima(threshold);
-
-    if seeds.is_empty() {
-        seeds.push(centroid_of(&safe));
-    }
 
     let mut placements = match options.mode {
         PlacementMode::Expert => options.existing.clone(),
@@ -84,8 +76,7 @@ pub fn place_modules(
     };
 
     if options.mode != PlacementMode::Expert {
-        placements.extend(seed_placements(&seeds, module, pitch, min_pitch));
-        fill_gaps(&mut placements, group, &safe, module, min_pitch, &field);
+        grid_fill(&mut placements, &safe, module, pitch, min_pitch);
     }
 
     // Respect fixed modules from semi-auto
@@ -102,86 +93,89 @@ pub fn place_modules(
         }
     }
 
-    prune_overcrowding(&mut placements, min_pitch * 0.7);
-
-    let coverage = estimate_coverage(&placements, module, &safe);
-    Ok(PlacementResult {
-        module_count: placements.len(),
-        pitch_used_mm: pitch,
-        coverage_estimate: coverage,
-        notes: vec![format!(
-            "HAMP v0.1: {} seeds, pitch {} mm",
-            seeds.len(),
-            pitch
-        )],
-        placements,
-    })
-}
-
-fn seed_placements(
-    seeds: &[Point2],
-    module: &LedModule,
-    pitch: f64,
-    min_pitch: f64,
-) -> Vec<ModulePlacement> {
-    let mut out = Vec::new();
-    for (i, seed) in seeds.iter().enumerate() {
-        out.push(ModulePlacement {
+    if placements.is_empty() {
+        let c = centroid_of(&safe);
+        placements.push(ModulePlacement {
             id: Uuid::new_v4().to_string(),
             module_id: module.id.clone(),
-            x: seed.x,
-            y: seed.y,
+            x: c.x,
+            y: c.y,
             angle_deg: 0.0,
             fixed: false,
             user_placed: false,
         });
-        // radial fill along 4 directions from seed
-        for (dx, dy) in [(1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0)] {
-            let mut t = pitch;
-            while t < pitch * 3.0 {
-                let p = Point2 {
-                    x: seed.x + dx * t,
-                    y: seed.y + dy * t,
-                };
-                if out.iter().any(|pl| dist(pl, &p) < min_pitch) {
-                    t += pitch;
-                    continue;
-                }
-                out.push(ModulePlacement {
+    }
+
+    prune_overcrowding(&mut placements, min_pitch * 0.7);
+
+    let coverage = if placements.len() <= 100 {
+        estimate_coverage(&placements, module, &safe, 25.0)
+    } else {
+        0.0
+    };
+    Ok(PlacementResult {
+        module_count: placements.len(),
+        pitch_used_mm: pitch,
+        coverage_estimate: coverage,
+        notes: vec![format!("HAMP v0.1 (Rust): grid pitch {} mm", pitch)],
+        placements,
+    })
+}
+
+fn grid_fill(
+    placements: &mut Vec<ModulePlacement>,
+    safe: &[Point2],
+    module: &LedModule,
+    pitch: f64,
+    min_pitch: f64,
+) {
+    if !pitch.is_finite() || pitch <= 1.0 {
+        return;
+    }
+    let (min_x, min_y, max_x, max_y) = bbox(safe);
+    if !min_x.is_finite() || !max_x.is_finite() {
+        return;
+    }
+    let mut y = min_y + pitch / 2.0;
+    while y <= max_y {
+        let mut x = min_x + pitch / 2.0;
+        while x <= max_x {
+            let p = Point2 { x, y };
+            if point_in_safe(safe, &p)
+                && !placements.iter().any(|pl| dist(pl, &p) < min_pitch)
+            {
+                placements.push(ModulePlacement {
                     id: Uuid::new_v4().to_string(),
                     module_id: module.id.clone(),
                     x: p.x,
                     y: p.y,
-                    angle_deg: if dx != 0.0 { 0.0 } else { 90.0 },
+                    angle_deg: 0.0,
                     fixed: false,
                     user_placed: false,
                 });
-                t += pitch;
             }
+            x += pitch;
         }
-        let _ = i;
+        y += pitch;
     }
-    out
 }
 
 fn fill_gaps(
     placements: &mut Vec<ModulePlacement>,
-    group: &ShapeGroup,
     safe: &[Point2],
     module: &LedModule,
     min_pitch: f64,
     field: &leds_geometry::DistanceField,
+    max_add: usize,
 ) {
-    let max_add = 50;
-    let mut added = 0;
     for _ in 0..max_add {
         let mut best: Option<(Point2, f32)> = None;
-        for y in 0..field.height {
-            for x in 0..field.width {
+        for y in (0..field.height).step_by(2) {
+            for x in (0..field.width).step_by(2) {
                 let wx = field.origin_x + x as f64 * field.cell_mm;
                 let wy = field.origin_y + y as f64 * field.cell_mm;
                 let p = Point2 { x: wx, y: wy };
-                if !point_in_shape(group, &p) || !point_in_safe(safe, &p) {
+                if !point_in_safe(safe, &p) {
                     continue;
                 }
                 if placements.iter().any(|pl| dist(pl, &p) < min_pitch) {
@@ -196,7 +190,7 @@ fn fill_gaps(
                     .map(|pl| dist(pl, &p))
                     .min_by(|a, b| a.partial_cmp(b).unwrap())
                     .unwrap_or(f64::MAX);
-                if nearest > module.placement.recommended_pitch_mm * 1.1 {
+                if nearest > module.placement.recommended_pitch_mm * 1.05 {
                     if best.map(|(_, bd)| d > bd).unwrap_or(true) {
                         best = Some((p, d));
                     }
@@ -213,10 +207,6 @@ fn fill_gaps(
             fixed: false,
             user_placed: false,
         });
-        added += 1;
-        if added >= max_add {
-            break;
-        }
     }
 }
 
@@ -269,7 +259,12 @@ fn point_in_safe(poly: &[Point2], p: &Point2) -> bool {
     inside
 }
 
-fn estimate_coverage(placements: &[ModulePlacement], module: &LedModule, safe: &[Point2]) -> f64 {
+fn estimate_coverage(
+    placements: &[ModulePlacement],
+    module: &LedModule,
+    safe: &[Point2],
+    step: f64,
+) -> f64 {
     if safe.is_empty() {
         return 0.0;
     }
@@ -280,7 +275,6 @@ fn estimate_coverage(placements: &[ModulePlacement], module: &LedModule, safe: &
         .and_then(|v| v.as_f64())
         .unwrap_or(50.0);
     let r = sigma * 2.0;
-    let step = 10.0;
     let (min_x, min_y, max_x, max_y) = bbox(safe);
     let mut covered = 0u32;
     let mut total = 0u32;

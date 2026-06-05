@@ -93,7 +93,7 @@ pub fn estimate_cost(placements: &[ModulePlacement], module: &LedModule, psu_cou
 }
 
 fn max_pair_span(placements: &[ModulePlacement]) -> f64 {
-    let mut max = 0.0;
+    let mut max = 0.0f64;
     for i in 0..placements.len() {
         for j in (i + 1)..placements.len() {
             let d = (placements[i].x - placements[j].x)

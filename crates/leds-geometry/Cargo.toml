@@ -9,6 +9,3 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 geo = { workspace = true }
 rayon = { workspace = true }
-i_overlay = "4.0"
-i_shape = "1.14"
-i_float = "1.15"

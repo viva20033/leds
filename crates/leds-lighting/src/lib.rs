@@ -1,7 +1,6 @@
 use leds_catalog::LedModule;
-use leds_geometry::contour::{Point2, ShapeGroup};
+use leds_geometry::{Point2, ShapeGroup};
 use leds_placement::ModulePlacement;
-use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -48,7 +47,7 @@ pub struct SimulationResult {
 }
 
 pub fn simulate(
-    group: &ShapeGroup,
+    _group: &ShapeGroup,
     safe: &[Point2],
     placements: &[ModulePlacement],
     modules: &[&LedModule],
@@ -58,17 +57,19 @@ pub fn simulate(
     let margin = 20.0;
     let origin_x = min_x - margin;
     let origin_y = min_y - margin;
-    let width = ((max_x - min_x + 2.0 * margin) / settings.cell_mm).ceil() as usize + 1;
-    let height = ((max_y - min_y + 2.0 * margin) / settings.cell_mm).ceil() as usize + 1;
+    let cell = settings.cell_mm.max(10.0);
+    let width = ((max_x - min_x + 2.0 * margin) / cell).ceil() as usize + 1;
+    let height = ((max_y - min_y + 2.0 * margin) / cell).ceil() as usize + 1;
+    let width = width.min(200);
+    let height = height.min(200);
     let n = width * height;
 
     let values: Vec<f32> = (0..n)
-        .into_par_iter()
         .map(|i| {
             let x = i % width;
             let y = i / width;
-            let wx = origin_x + x as f64 * settings.cell_mm;
-            let wy = origin_y + y as f64 * settings.cell_mm;
+            let wx = origin_x + x as f64 * cell;
+            let wy = origin_y + y as f64 * cell;
             let p = Point2 { x: wx, y: wy };
             if !point_in_safe(safe, &p) {
                 return 0.0;
@@ -115,10 +116,11 @@ pub fn simulate(
         height,
         origin_x,
         origin_y,
-        settings.cell_mm,
+        settings.cell_mm.max(10.0),
         mean,
         settings.i_min_ratio,
         settings.i_max_ratio,
+        25,
     );
 
     SimulationResult {
@@ -126,7 +128,7 @@ pub fn simulate(
         height,
         origin_x,
         origin_y,
-        cell_mm: settings.cell_mm,
+        cell_mm: cell,
         values,
         min_illuminance: if min_i == f32::MAX { 0.0 } else { min_i },
         max_illuminance: max_i,
@@ -168,13 +170,14 @@ fn detect_alerts(
     mean: f32,
     i_min: f64,
     i_max: f64,
+    max_alerts: usize,
 ) -> Vec<LightAlert> {
     let mut alerts = Vec::new();
     if mean <= 0.0 {
         return alerts;
     }
-    for y in 0..height {
-        for x in 0..width {
+    'scan: for y in (0..height).step_by(2) {
+        for x in (0..width).step_by(2) {
             let v = values[y * width + x];
             if v <= 0.0 {
                 continue;
@@ -199,11 +202,10 @@ fn detect_alerts(
                     message: "Переуплотнение / риск пятна".into(),
                 });
             }
+            if alerts.len() >= max_alerts {
+                break 'scan;
+            }
         }
-    }
-    // throttle alerts
-    if alerts.len() > 30 {
-        alerts.truncate(30);
     }
     alerts
 }

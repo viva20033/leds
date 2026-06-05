@@ -1,0 +1,73 @@
+{
+  "id": "elf.sol-plus-dot.1smd-2835.warm",
+  "vendor": "ELF",
+  "modelName": "ELF SOL+DOT, 1SMD 2835, тёплый белый",
+  "description": "Компактный точечный модуль для мелких элементов, тонких штрихов и мелких букв (глубина 40–70 мм). Асимметричная диаграмма 170°×130°.",
+  "leds": {
+    "count": 1,
+    "type": "2835"
+  },
+  "footprint": {
+    "lengthMm": 16,
+    "widthMm": 8.5,
+    "heightMm": 8,
+    "weightG": 2,
+    "material": "plastic",
+    "orientation": "point"
+  },
+  "electrical": {
+    "voltageV": 12,
+    "powerW": 0.24,
+    "lumens": 37,
+    "currentA": 0.02,
+    "ipRating": "IP67"
+  },
+  "color": {
+    "name": "тёплый белый",
+    "temperatureKMin": 2500,
+    "temperatureKMax": 3500
+  },
+  "optics": {
+    "beamAngle": {
+      "type": "asymmetric",
+      "horizontalDeg": 170,
+      "verticalDeg": 130
+    },
+    "lensType": "dot"
+  },
+  "placement": {
+    "depthMinMm": 40,
+    "depthMaxMm": 70,
+    "recommendedPitchMm": 70,
+    "minPitchMm": 45,
+    "maxPitchMm": 70
+  },
+  "chain": {
+    "maxCenterDistanceMm": 70,
+    "maxModulesInSeries": 50
+  },
+  "packaging": {
+    "unitsPerPack": 100,
+    "warrantyMonths": 60
+  },
+  "pricing": {
+    "unitPrice": 35,
+    "currency": "RUB"
+  },
+  "lightModel": {
+    "type": "gaussian_cos_asymmetric",
+    "params": {
+      "sigmaXMm": 22,
+      "sigmaYMm": 18,
+      "cosPowerH": 1.5,
+      "cosPowerV": 1.8,
+      "lumenScale": 1.0
+    },
+    "depthFactor": {
+      "kSigma": 0.1,
+      "kAngle": 0.015
+    },
+    "calibrationNote": "Асимметричное пятно: σx/σy при глубине 55 мм; ориентация модуля влияет на засветку"
+  },
+  "tags": ["popular", "small-letter", "thin-stroke", "12v", "warm-white", "asymmetric-beam"]
+}

@@ -1,0 +1,70 @@
+{
+  "id": "elf.sol-plus.2smd-2835.white",
+  "vendor": "ELF",
+  "modelName": "ELF SOL+, 2SMD 2835, белый",
+  "description": "Универсальный модуль для объёмных букв и коробов средней глубины. Самый частый выбор для вывесок 70–130 мм.",
+  "leds": {
+    "count": 2,
+    "type": "2835"
+  },
+  "footprint": {
+    "lengthMm": 48.5,
+    "widthMm": 17.7,
+    "heightMm": 9.5,
+    "weightG": 9.1,
+    "material": "plastic",
+    "orientation": "linear"
+  },
+  "electrical": {
+    "voltageV": 12,
+    "powerW": 0.93,
+    "lumens": 140,
+    "currentA": 0.0775,
+    "ipRating": "IP67"
+  },
+  "color": {
+    "name": "белый",
+    "temperatureKMin": 7000,
+    "temperatureKMax": 8000
+  },
+  "optics": {
+    "beamAngle": {
+      "type": "symmetric",
+      "degrees": 170
+    },
+    "lensType": "wide"
+  },
+  "placement": {
+    "depthMinMm": 70,
+    "depthMaxMm": 130,
+    "recommendedPitchMm": 250,
+    "minPitchMm": 120,
+    "maxPitchMm": 250
+  },
+  "chain": {
+    "maxCenterDistanceMm": 250,
+    "maxModulesInSeries": 20
+  },
+  "packaging": {
+    "unitsPerPack": 100,
+    "warrantyMonths": 60
+  },
+  "pricing": {
+    "unitPrice": 43,
+    "currency": "RUB"
+  },
+  "lightModel": {
+    "type": "gaussian_cos",
+    "params": {
+      "sigmaMm": 55,
+      "cosPower": 1.2,
+      "lumenScale": 1.0
+    },
+    "depthFactor": {
+      "kSigma": 0.12,
+      "kAngle": 0.01
+    },
+    "calibrationNote": "σ=55 мм при глубине 100 мм, opal 3 мм — стартовая оценка для 170°"
+  },
+  "tags": ["popular", "channel-letter", "lightbox", "12v", "white"]
+}

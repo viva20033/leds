@@ -1,0 +1,17 @@
+[package]
+name = "leds-cli"
+description = "LEDS command-line interface"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "leds"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+serde_json = { workspace = true }
+tracing-subscriber = { workspace = true }
+leds-core = { workspace = true }
+leds-catalog = { workspace = true }
+leds-import = { workspace = true }

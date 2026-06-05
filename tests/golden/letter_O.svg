@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="300mm" height="300mm" viewBox="0 0 300 300">
+  <path fill="none" stroke="#000" stroke-width="0.5"
+    d="M 150 30
+       A 120 120 0 1 1 149.9 30
+       M 150 90
+       A 60 60 0 1 0 150.1 90 Z"/>
+</svg>

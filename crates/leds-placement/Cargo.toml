@@ -1,0 +1,12 @@
+[package]
+name = "leds-placement"
+description = "Hybrid adaptive medial placement (HAMP)"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+uuid = { workspace = true }
+thiserror = { workspace = true }
+leds-catalog = { workspace = true }
+leds-geometry = { workspace = true }

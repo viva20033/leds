@@ -1,0 +1,30 @@
+{
+  "id": "elf-default",
+  "version": "1.0.0",
+  "name": "ELF — популярные модули (встроенный каталог)",
+  "locale": "ru",
+  "vendor": "ELF",
+  "createdAt": "2026-06-04",
+  "signature": null,
+  "schemaVersion": "1",
+  "modules": [
+    "modules/elf-sol-plus-2smd-2835-white.json",
+    "modules/elf-sol-plus-3smd-2835-cold-white.json",
+    "modules/elf-sol-plus-dot-1smd-2835-warm-white.json"
+  ],
+  "defaults": {
+    "signDepthMm": 100,
+    "rimWidthMm": 15,
+    "diffuser": "opal_3mm",
+    "preferredModuleByDepth": [
+      { "depthMaxMm": 70, "moduleId": "elf.sol-plus-dot.1smd-2835.warm" },
+      { "depthMaxMm": 130, "moduleId": "elf.sol-plus.2smd-2835.white" },
+      { "depthMaxMm": 9999, "moduleId": "elf.sol-plus.3smd-2835.cold" }
+    ]
+  },
+  "notes": [
+    "recommendedPitchMm взяты из паспортного «расстояния между центрами модулей в цепи»",
+    "sigmaMm в lightModel — стартовые значения для симуляции; калибровка после получения макетов от технолога",
+    "unitPrice: DOT 35 ₽, 2SMD 43 ₽, 3SMD 60 ₽ (закупочные, 2026)"
+  ]
+}

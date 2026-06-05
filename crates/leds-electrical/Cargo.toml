@@ -1,0 +1,10 @@
+[package]
+name = "leds-electrical"
+description = "Power chains and cost estimation"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+leds-catalog = { workspace = true }
+leds-placement = { workspace = true }

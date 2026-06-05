@@ -1,0 +1,46 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/leds-catalog",
+    "crates/leds-geometry",
+    "crates/leds-import",
+    "crates/leds-placement",
+    "crates/leds-lighting",
+    "crates/leds-electrical",
+    "crates/leds-core",
+    "crates/leds-cli",
+]
+default-members = ["crates/leds-cli"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "Proprietary"
+authors = ["LEDS Team"]
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+geo = "0.32"
+usvg = "0.45"
+i_overlay = "4.0"
+i_shape = "1.14"
+i_float = "1.15"
+kurbo = "0.11"
+rayon = "1.10"
+uuid = { version = "1", features = ["v4", "serde"] }
+
+leds-catalog = { path = "crates/leds-catalog" }
+leds-geometry = { path = "crates/leds-geometry" }
+leds-import = { path = "crates/leds-import" }
+leds-placement = { path = "crates/leds-placement" }
+leds-lighting = { path = "crates/leds-lighting" }
+leds-electrical = { path = "crates/leds-electrical" }
+leds-core = { path = "crates/leds-core" }
+
+[profile.release]
+lto = true
+codegen-units = 1

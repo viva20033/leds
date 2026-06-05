@@ -1,0 +1,12 @@
+[package]
+name = "leds-import"
+description = "SVG and DXF import"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+usvg = { workspace = true }
+leds-geometry = { workspace = true }

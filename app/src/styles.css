@@ -1,0 +1,71 @@
+:root {
+  color-scheme: dark;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #12141a;
+  color: #e8ecf4;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+
+.shell {
+  display: grid;
+  grid-template-columns: 260px 1fr 280px;
+  grid-template-rows: 48px 1fr;
+  height: 100vh;
+}
+
+.topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  background: #1c2030;
+  border-bottom: 1px solid #2a3148;
+}
+
+.brand { font-weight: 700; letter-spacing: 0.08em; color: #7eb6ff; }
+.subtitle { color: #8b95a8; font-size: 13px; }
+
+.sidebar { background: #171b26; border-right: 1px solid #2a3148; overflow: auto; }
+.sidebar.right { border-right: none; border-left: 1px solid #2a3148; }
+
+.workspace { background: #11141c; min-height: 0; }
+
+.panel { padding: 16px; }
+.panel h2 { margin: 0 0 12px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: #8b95a8; }
+.panel h3 { margin: 12px 0 6px; font-size: 14px; }
+.panel label { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; font-size: 13px; }
+.panel input {
+  background: #0f1219;
+  border: 1px solid #2f3852;
+  color: inherit;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.panel ul { margin: 0; padding-left: 18px; font-size: 13px; color: #b8c0d0; }
+
+.module-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.module-list button {
+  width: 100%;
+  text-align: left;
+  background: #0f1219;
+  border: 1px solid #2f3852;
+  color: inherit;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.module-list button.active { border-color: #5b8def; background: #152238; }
+.module-list strong { display: block; font-size: 13px; }
+.module-list span { font-size: 12px; color: #8b95a8; }
+
+.viewport-wrap { height: 100%; display: flex; flex-direction: column; }
+.viewport-canvas { flex: 1; width: 100%; display: block; }
+.viewport-toolbar {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #8b95a8;
+  border-top: 1px solid #2a3148;
+}

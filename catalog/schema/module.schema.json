@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://leds.local/schema/module.schema.json",
+  "title": "LED Module Catalog Entry",
+  "type": "object",
+  "required": [
+    "id",
+    "vendor",
+    "modelName",
+    "footprint",
+    "electrical",
+    "optics",
+    "placement",
+    "chain",
+    "lightModel"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]+$"
+    },
+    "vendor": { "type": "string" },
+    "modelName": { "type": "string" },
+    "description": { "type": "string" },
+    "leds": {
+      "type": "object",
+      "properties": {
+        "count": { "type": "integer", "minimum": 1 },
+        "type": { "type": "string" }
+      }
+    },
+    "footprint": {
+      "type": "object",
+      "required": ["lengthMm", "widthMm", "heightMm"],
+      "properties": {
+        "lengthMm": { "type": "number", "exclusiveMinimum": 0 },
+        "widthMm": { "type": "number", "exclusiveMinimum": 0 },
+        "heightMm": { "type": "number", "exclusiveMinimum": 0 },
+        "weightG": { "type": "number" },
+        "material": { "type": "string" },
+        "orientation": {
+          "type": "string",
+          "enum": ["linear", "point"],
+          "description": "linear — длинная сторона вдоль оси штриха; point — круглое/точечное"
+        }
+      }
+    },
+    "electrical": {
+      "type": "object",
+      "required": ["voltageV", "powerW", "lumens"],
+      "properties": {
+        "voltageV": { "type": "number" },
+        "powerW": { "type": "number", "exclusiveMinimum": 0 },
+        "lumens": { "type": "number", "exclusiveMinimum": 0 },
+        "currentA": { "type": "number" },
+        "ipRating": { "type": "string" }
+      }
+    },
+    "color": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "temperatureKMin": { "type": "integer" },
+        "temperatureKMax": { "type": "integer" }
+      }
+    },
+    "optics": {
+      "type": "object",
+      "required": ["beamAngle"],
+      "properties": {
+        "beamAngle": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["type", "degrees"],
+              "properties": {
+                "type": { "const": "symmetric" },
+                "degrees": { "type": "number", "exclusiveMinimum": 0, "maximum": 180 }
+              }
+            },
+            {
+              "type": "object",
+              "required": ["type", "horizontalDeg", "verticalDeg"],
+              "properties": {
+                "type": { "const": "asymmetric" },
+                "horizontalDeg": { "type": "number", "exclusiveMinimum": 0, "maximum": 180 },
+                "verticalDeg": { "type": "number", "exclusiveMinimum": 0, "maximum": 180 }
+              }
+            }
+          ]
+        },
+        "lensType": { "type": "string" }
+      }
+    },
+    "placement": {
+      "type": "object",
+      "required": ["depthMinMm", "depthMaxMm", "recommendedPitchMm", "minPitchMm"],
+      "properties": {
+        "depthMinMm": { "type": "number" },
+        "depthMaxMm": { "type": "number" },
+        "recommendedPitchMm": {
+          "type": "number",
+          "description": "Рекомендуемый шаг монтажа для равномерной засветки"
+        },
+        "minPitchMm": {
+          "type": "number",
+          "description": "Минимальный шаг (переуплотнение / тонкие зоны)"
+        },
+        "maxPitchMm": {
+          "type": "number",
+          "description": "Максимальный шаг до риска недосвета"
+        }
+      }
+    },
+    "chain": {
+      "type": "object",
+      "required": ["maxCenterDistanceMm", "maxModulesInSeries"],
+      "properties": {
+        "maxCenterDistanceMm": {
+          "type": "number",
+          "description": "Макс. расстояние между центрами соседних модулей в одной цепи (по паспорту)"
+        },
+        "maxModulesInSeries": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "packaging": {
+      "type": "object",
+      "properties": {
+        "unitsPerPack": { "type": "integer" },
+        "warrantyMonths": { "type": "integer" }
+      }
+    },
+    "pricing": {
+      "type": "object",
+      "properties": {
+        "unitPrice": { "type": "number" },
+        "currency": { "type": "string", "default": "RUB" }
+      }
+    },
+    "lightModel": {
+      "type": "object",
+      "required": ["type", "params"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["gaussian_cos", "gaussian_cos_asymmetric", "lut"]
+        },
+        "params": { "type": "object" },
+        "depthFactor": {
+          "type": "object",
+          "properties": {
+            "kSigma": { "type": "number", "default": 0.15 },
+            "kAngle": { "type": "number", "default": 0.02 }
+          }
+        },
+        "calibrationNote": { "type": "string" }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "id": "elf.sol-plus.3smd-2835.cold",
+  "vendor": "ELF",
+  "modelName": "ELF SOL+, 3SMD 2835, холодный белый",
+  "description": "Мощный модуль для глубоких букв и крупных световых коробов (80–170 мм). Повышенный поток и шаг до 300 мм.",
+  "leds": {
+    "count": 3,
+    "type": "2835"
+  },
+  "footprint": {
+    "lengthMm": 71.5,
+    "widthMm": 17.7,
+    "heightMm": 9.5,
+    "weightG": 14,
+    "material": "plastic",
+    "orientation": "linear"
+  },
+  "electrical": {
+    "voltageV": 12,
+    "powerW": 1.46,
+    "lumens": 210,
+    "currentA": 0.1217,
+    "ipRating": "IP67"
+  },
+  "color": {
+    "name": "холодный белый",
+    "temperatureKMin": 11000,
+    "temperatureKMax": 12000
+  },
+  "optics": {
+    "beamAngle": {
+      "type": "symmetric",
+      "degrees": 170
+    },
+    "lensType": "wide"
+  },
+  "placement": {
+    "depthMinMm": 80,
+    "depthMaxMm": 170,
+    "recommendedPitchMm": 300,
+    "minPitchMm": 150,
+    "maxPitchMm": 300
+  },
+  "chain": {
+    "maxCenterDistanceMm": 300,
+    "maxModulesInSeries": 10
+  },
+  "packaging": {
+    "unitsPerPack": 100,
+    "warrantyMonths": 60
+  },
+  "pricing": {
+    "unitPrice": 60,
+    "currency": "RUB"
+  },
+  "lightModel": {
+    "type": "gaussian_cos",
+    "params": {
+      "sigmaMm": 70,
+      "cosPower": 1.2,
+      "lumenScale": 1.0
+    },
+    "depthFactor": {
+      "kSigma": 0.14,
+      "kAngle": 0.01
+    },
+    "calibrationNote": "σ=70 мм при глубине 120 мм — стартовая оценка; 3 LED дают более широкое пятно"
+  },
+  "tags": ["popular", "deep-channel", "lightbox", "12v", "cold-white"]
+}
